@@ -1,0 +1,85 @@
+version: 2
+jobs:
+    build_bbb:
+      docker:
+        - image: kubos/kubos-dev:latest
+      environment:
+        KUBOS_BOARD: beaglebone-black
+      working_directory: ~/project/kubos-linux-build
+      steps:
+        - checkout
+        - run: ./build.sh | tee full_build.log
+        - store_artifacts:
+            path: full_build.log
+            destination: Beaglebone-Black/full_build.log
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/kubos-linux.tar.gz
+            destination: Beaglebone-Black/kubos-linux.tar.gz
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/aux-sd.tar.gz
+            destination: Beaglebone-Black/aux-sd.tar.gz
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/kpack-base.itb
+            destination: Beaglebone-Black/kpack-base.itb
+    build_mbm2:
+      docker:
+        - image: kubos/kubos-dev:latest
+      environment:
+        KUBOS_BOARD: pumpkin-mbm2
+      working_directory: ~/project/kubos-linux-build
+      steps:
+        - checkout
+        - run: ./build.sh | tee full_build.log
+        - store_artifacts:
+            path: full_build.log
+            destination: Pumpkin-MBM2/full_build.log
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/kubos-linux.tar.gz
+            destination: Pumpkin-MBM2/kubos-linux.tar.gz
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/aux-sd.tar.gz
+            destination: Pumpkin-MBM2/aux-sd.tar.gz
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/kpack-base.itb
+            destination: Pumpkin-MBM2/kpack-base.itb
+    build_iobc:
+      docker:
+        - image: kubos/kubos-dev:latest
+      environment:
+        KUBOS_BOARD: at91sam9g20isis
+      working_directory: ~/project/kubos-linux-build
+      steps:
+        - checkout
+        - run: ./build.sh | tee full_build.log
+        - store_artifacts:
+            path: full_build.log
+            destination: iOBC/full_build.log
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/kubos-linux.tar.gz
+            destination: iOBC/kubos-linux.tar.gz
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/at91sam9g20isis.dtb
+            destination: iOBC/at91sam9g20isis.dtb
+        - store_artifacts:
+            path: ../buildroot-2019.02.2/output/images/u-boot.bin
+            destination: iOBC/u-boot.bin
+            
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_bbb
+      - build_mbm2
+      - build_iobc
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build_bbb
+      - build_mbm2
+      - build_iobc
